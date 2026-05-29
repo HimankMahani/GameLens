@@ -53,68 +53,65 @@ function buildPgn(headers: Record<string, string>, moves: string[]): string {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const id = (url.searchParams.get("id") || "").replace(/[^0-9]/g, "");
-  const kind = (url.searchParams.get("kind") || "live").toLowerCase() === "daily" ? "daily" : "live";
+  const kindParam = (url.searchParams.get("kind") || "auto").toLowerCase();
   if (!id) {
     return NextResponse.json({ error: "Missing game id" }, { status: 400 });
   }
 
-  const target = `https://www.chess.com/callback/${kind}/game/${id}`;
-  let upstream: Response;
-  try {
-    upstream = await fetch(target, {
-      headers: {
-        // chess.com's callback API rejects requests without a browser-like UA.
-        "User-Agent":
-          "Mozilla/5.0 (compatible; ChessAnalyzer/1.0; +https://github.com/)",
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { error: "Network error contacting chess.com: " + (e instanceof Error ? e.message : String(e)) },
-      { status: 502 }
-    );
-  }
+  const kindsToTry = kindParam === "live" ? ["live"] : kindParam === "daily" ? ["daily"] : ["live", "daily"];
 
-  if (!upstream.ok) {
-    const status = upstream.status;
-    if (status === 404) {
-      return NextResponse.json(
-        { error: `Game ${id} not found on chess.com (kind=${kind})` },
-        { status: 404 }
-      );
+  let lastStatus = 404;
+  let lastErrorMsg = `Game ${id} not found on chess.com`;
+  let data: any = null;
+
+  for (const kind of kindsToTry) {
+    const target = `https://www.chess.com/callback/${kind}/game/${id}`;
+    try {
+      const upstream = await fetch(target, {
+        headers: {
+          // chess.com's callback API rejects requests without a browser-like UA.
+          "User-Agent":
+            "Mozilla/5.0 (compatible; ChessAnalyzer/1.0; +https://github.com/)",
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (upstream.ok) {
+        try {
+          const parsedData = await upstream.json();
+          if (parsedData && parsedData.game) {
+            data = parsedData;
+            break;
+          }
+        } catch {
+          // ignore parsing error and let loop continue
+        }
+      } else {
+        lastStatus = upstream.status;
+        if (lastStatus === 429) {
+          return NextResponse.json(
+            { error: "Chess.com is rate-limiting us. Try again in a minute." },
+            { status: 429 }
+          );
+        }
+        if (lastStatus === 403) {
+          lastErrorMsg = "Chess.com refused — game might be private or restricted.";
+        } else {
+          lastErrorMsg = `Game ${id} not found or inaccessible on chess.com (${kind})`;
+        }
+      }
+    } catch (e) {
+      lastStatus = 502;
+      lastErrorMsg = "Network error contacting chess.com: " + (e instanceof Error ? e.message : String(e));
     }
-    if (status === 429) {
-      return NextResponse.json(
-        { error: "Chess.com is rate-limiting us. Try again in a minute." },
-        { status: 429 }
-      );
-    }
-    if (status === 403) {
-      return NextResponse.json(
-        { error: "Chess.com refused — game might be private or restricted." },
-        { status: 403 }
-      );
-    }
-    return NextResponse.json(
-      { error: `Chess.com returned HTTP ${status}` },
-      { status: 502 }
-    );
   }
 
-  let data: unknown;
-  try {
-    data = await upstream.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON from chess.com" }, { status: 502 });
+  if (!data || !data.game) {
+    return NextResponse.json({ error: lastErrorMsg }, { status: lastStatus });
   }
 
-  const game = (data as { game?: Record<string, unknown> }).game;
-  if (!game) {
-    return NextResponse.json({ error: "Response had no game payload" }, { status: 502 });
-  }
-
+  const game = data.game;
   const tcn = game["moveList"] as string | undefined;
   const headers = (game["pgnHeaders"] as Record<string, string> | undefined) ?? {};
   if (!tcn) {

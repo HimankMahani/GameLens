@@ -4,7 +4,7 @@
  */
 
 const LICHESS_RE = /^(?:https?:\/\/)?(?:www\.)?lichess\.org\/([A-Za-z0-9]{8})(?:[\/?#].*)?$/;
-const CHESSCOM_RE = /^(?:https?:\/\/)?(?:www\.)?chess\.com\/(?:game|analysis\/game)\/(live|daily)\/(\d+)\/?(?:[?#].*)?$/i;
+const CHESSCOM_RE = /^(?:https?:\/\/)?(?:www\.)?chess\.com\/(?:game|analysis\/game)\/(?:(live|daily)\/)?(\d+)\/?(?:[?#].*)?$/i;
 
 export type PgnSource = "lichess" | "chesscom";
 
@@ -34,11 +34,22 @@ export function detectSource(input: string): DetectedSource | null {
   if (m) {
     return {
       source: "chesscom",
-      kind: m[1].toLowerCase() as "live" | "daily",
+      kind: m[1] ? (m[1].toLowerCase() as "live" | "daily") : undefined,
       id: m[2],
     };
   }
   return null;
+}
+
+export function isFen(input: string): boolean {
+  const trimmed = input.trim();
+  const parts = trimmed.split(/\s+/);
+  const piecePlacement = parts[0];
+  const slashCount = (piecePlacement.match(/\//g) || []).length;
+  if (slashCount === 7) {
+    return /^[1-8KQRBNPkqrbnp\/]+$/i.test(piecePlacement);
+  }
+  return false;
 }
 
 export async function fetchPgn(url: string): Promise<FetchedPgn> {

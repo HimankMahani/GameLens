@@ -2,7 +2,7 @@
 
 import { FC, useState } from "react";
 import { ClipboardPaste, Sparkles, Hash, Link as LinkIcon, Loader2, X, Upload } from "lucide-react";
-import { detectSource, fetchPgn } from "@/lib/pgnFetch";
+import { detectSource, fetchPgn, isFen } from "@/lib/pgnFetch";
 import UserGamesPanel from "./UserGamesPanel";
 import RecentGames from "./RecentGames";
 import type { CachedGame } from "@/lib/gameCache";
@@ -26,7 +26,6 @@ const ImportModal: FC<ImportModalProps> = ({
   onBulkDone,
   defaultDepth = 14,
 }) => {
-  const [tab, setTab] = useState<"pgn" | "fen">("pgn");
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [depth, setDepth] = useState<12 | 14 | 18>(defaultDepth);
@@ -40,14 +39,25 @@ const ImportModal: FC<ImportModalProps> = ({
     onClose();
   };
 
+  const getDetectedType = (val: string): "empty" | "url" | "fen" | "pgn" => {
+    const trimmed = val.trim();
+    if (!trimmed) return "empty";
+    if (detectSource(trimmed)) return "url";
+    if (isFen(trimmed)) return "fen";
+    return "pgn";
+  };
+
+  const detectedType = getDetectedType(input);
+
   const handleStart = async () => {
     setError("");
     const v = input.trim();
     if (!v) {
-      setError("Paste a PGN or game URL first.");
+      setError("Paste a game URL, FEN, or PGN first.");
       return;
     }
-    if (tab === "fen") {
+    const type = getDetectedType(v);
+    if (type === "fen") {
       if (onExplore) {
         onExplore(v);
         close();
@@ -56,7 +66,7 @@ const ImportModal: FC<ImportModalProps> = ({
       }
       return;
     }
-    if (detectSource(v)) {
+    if (type === "url") {
       setFetching(true);
       try {
         const { pgn } = await fetchPgn(v);
@@ -100,38 +110,42 @@ const ImportModal: FC<ImportModalProps> = ({
           Your current game stays open — closing this dialog returns you to it.
         </p>
 
-        <div className="flex items-center gap-1 mb-2">
-          {(["pgn", "fen"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => { setTab(t); setError(""); }}
-              className={`h-8 px-3 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-                tab === t ? "bg-[var(--main)] text-bg" : "text-muted hover:text-fg/90 hover:bg-bg/50"
-              }`}
-            >
-              {t === "pgn" ? <><LinkIcon size={11} /> PGN / URL</> : <><Hash size={11} /> FEN</>}
-            </button>
-          ))}
-          <div className="flex-1" />
-          {tab === "pgn" && (
-            <button
-              onClick={handlePaste}
-              className="h-8 px-2.5 text-[11px] text-muted hover:text-fg/90 hover:bg-bg/40 rounded-md transition-colors flex items-center gap-1"
-              title="Paste from clipboard"
-            >
-              <ClipboardPaste size={11} /> Paste
-            </button>
-          )}
+        <div className="flex items-center justify-between mb-2 bg-bg/25 p-1 rounded-lg">
+          <div className="flex items-center gap-2 px-1">
+            {detectedType === "url" && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 transition-all animate-[fade-in_150ms_ease-out]">
+                <LinkIcon size={10} /> Link Detected
+              </span>
+            )}
+            {detectedType === "fen" && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 transition-all animate-[fade-in_150ms_ease-out]">
+                <Hash size={10} /> FEN Detected
+              </span>
+            )}
+            {detectedType === "pgn" && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all animate-[fade-in_150ms_ease-out]">
+                <Sparkles size={10} /> PGN Detected
+              </span>
+            )}
+            {detectedType === "empty" && (
+              <span className="text-[11px] text-muted/65 italic transition-all px-1">
+                Paste a link, FEN, or PGN moves
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handlePaste}
+            className="h-7 px-2.5 text-[11px] text-muted hover:text-fg hover:bg-bg/40 rounded-md transition-colors flex items-center gap-1"
+            title="Paste from clipboard"
+          >
+            <ClipboardPaste size={11} /> Paste
+          </button>
         </div>
 
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            tab === "pgn"
-              ? "Paste PGN or a chess.com / lichess game URL…"
-              : "Paste a FEN to explore…"
-          }
+          placeholder="Paste a chess.com/lichess game link, PGN moves, or FEN board state..."
           className="w-full h-32 p-3 text-sm bg-bg/60 ring-1 ring-muted/25 rounded-lg text-fg placeholder-muted/50 focus:outline-none focus:ring-muted/55 font-mono resize-none"
           spellCheck={false}
         />
@@ -141,7 +155,7 @@ const ImportModal: FC<ImportModalProps> = ({
         )}
 
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          {tab === "pgn" && (
+          {detectedType !== "fen" && (
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wider text-muted/70">Depth</span>
               {([12, 14, 18] as const).map((d) => (
@@ -162,30 +176,36 @@ const ImportModal: FC<ImportModalProps> = ({
           <div className="flex-1" />
           <button
             onClick={handleStart}
-            disabled={fetching}
+            disabled={fetching || detectedType === "empty"}
             className="h-9 px-4 bg-[var(--main)] text-bg text-xs font-medium rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {fetching && <Loader2 size={11} className="animate-spin" />}
-            {fetching ? "Fetching…" : tab === "pgn" ? "Analyze" : "Explore"}
+            {fetching ? (
+              "Fetching…"
+            ) : detectedType === "fen" ? (
+              <>Explore FEN</>
+            ) : detectedType === "url" ? (
+              <>Analyze URL</>
+            ) : (
+              <>Analyze PGN</>
+            )}
           </button>
         </div>
 
-        {tab === "pgn" && (
-          <div className="mt-5 pt-4 border-t border-muted/20">
-            <UserGamesPanel
-              onPick={(pgn) => {
-                onStart(pgn, { depth });
-                close();
-              }}
-              onBulkDone={(info) => {
-                onBulkDone?.(info);
-              }}
-              bulkDepth={depth}
-            />
-          </div>
-        )}
+        <div className="mt-5 pt-4 border-t border-muted/20">
+          <UserGamesPanel
+            onPick={(pgn) => {
+              onStart(pgn, { depth });
+              close();
+            }}
+            onBulkDone={(info) => {
+              onBulkDone?.(info);
+            }}
+            bulkDepth={depth}
+          />
+        </div>
 
-        {tab === "pgn" && onOpenCached && (
+        {onOpenCached && (
           <RecentGames
             onOpen={(g) => {
               onOpenCached(g);
