@@ -16,6 +16,14 @@ export const metadata: Metadata = {
   title: "GameLens · Chess Game Review",
   description:
     "Paste a PGN and review your chess game move-by-move with Stockfish — accuracy %, blunders, missed wins, and best-move suggestions.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/png" },
+      { url: "/gamelens-icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [{ rel: "manifest-icon", url: "/icon-192.png" }],
+  },
 };
 
 export const viewport: Viewport = {

@@ -73,19 +73,31 @@ export function useStockfish() {
   }, []);
 
   useEffect(() => {
+    // stockfish.js is a dual-mode script. It auto-detects a Web Worker context
+    // via `typeof onmessage !== 'undefined' && typeof window === 'undefined'`
+    // so a plain URL is sufficient — no hash fragment needed.
     const worker = new Worker("/stockfish/stockfish.js");
     workerRef.current = worker;
 
-    // 60s — first load downloads ~108MB of WASM; subsequent loads hit the HTTP cache.
+    // 90s — first load compiles the WASM; subsequent loads hit the HTTP cache.
     const t = setTimeout(() => {
-      if (!readyRef.current) setError("Engine load timed out — try a different browser or disable extensions.");
-    }, 60000);
+      if (!readyRef.current) setError("Engine load timed out — try a hard-refresh (Ctrl+Shift+R) or disable extensions.");
+    }, 90000);
 
     worker.onerror = (e: ErrorEvent) => {
-      const detail = e.message || e.filename || "unknown";
-      console.error("Stockfish worker error:", e);
-      setError("Engine failed to load: " + detail);
-      setIsReady(false);
+      // The WASM streaming-compile sometimes fires a non-fatal unhandled-rejection
+      // that shows up here as an empty ErrorEvent (message/filename both "").
+      // The engine recovers via its ArrayBuffer fallback, so we only treat it
+      // as fatal when the event carries real detail.
+      const detail = e.message || e.filename;
+      if (detail) {
+        console.error("Stockfish worker error:", e);
+        setError("Engine failed to load: " + detail);
+        setIsReady(false);
+      } else {
+        // Non-fatal — log at debug level and let the engine continue initializing.
+        console.debug("Stockfish: non-fatal worker event (WASM streaming fallback)", e);
+      }
     };
 
     worker.onmessage = (e) => {

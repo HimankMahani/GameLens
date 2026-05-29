@@ -58,13 +58,14 @@ export function createPool(size: number): EnginePool {
     readyResolvers.forEach((r) => r());
   };
 
-  // 60s — the WASM is ~108MB; first load on slow connections can take 30-50s.
-  // Subsequent loads hit the HTTP cache and finish in <1s.
+  // 90s — the WASM compiles on first load; subsequent loads hit the HTTP cache.
   const loadTimeout = setTimeout(() => {
-    rejectReady(new Error("Engine load timed out"));
-  }, 60000);
+    rejectReady(new Error("Engine load timed out — try a hard-refresh (Ctrl+Shift+R)"));
+  }, 90000);
 
   for (let i = 0; i < size; i++) {
+    // stockfish.js auto-detects a worker context via onmessage/window detection.
+    // A plain URL is all that is needed — no hash fragment required.
     const worker = new Worker("/stockfish/stockfish.js");
     const slot: WorkerSlot = {
       worker,
@@ -79,9 +80,15 @@ export function createPool(size: number): EnginePool {
     slots.push(slot);
 
     worker.onerror = (e: ErrorEvent) => {
-      const detail = e.message || e.filename || "unknown";
-      console.error("Stockfish worker error:", e);
-      rejectReady(new Error("Engine worker failed to load: " + detail));
+      // Non-fatal empty ErrorEvents come from the WASM streaming-compile
+      // falling back to ArrayBuffer — the engine recovers on its own.
+      const detail = e.message || e.filename;
+      if (detail) {
+        console.error("Stockfish pool worker error:", e);
+        rejectReady(new Error("Engine worker failed to load: " + detail));
+      } else {
+        console.debug("Stockfish pool: non-fatal worker event (WASM streaming fallback)", e);
+      }
     };
 
     worker.onmessage = (e) => {

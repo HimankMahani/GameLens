@@ -5,7 +5,6 @@ import { Chess, Move } from "chess.js";
 import {
   Copy,
   Check,
-  RotateCcw,
   ArrowLeftRight,
   Gauge,
   HelpCircle,
@@ -934,133 +933,282 @@ export default function Home() {
     >
       <div className="max-w-[1440px] mx-auto">
         {/* Header */}
-        <header className="mb-4 flex flex-col gap-3 xl:mb-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <header className="mb-4 xl:mb-5 rounded-2xl ring-1 ring-white/[0.06] overflow-hidden"
+          style={{ background: "linear-gradient(135deg, rgba(24,24,27,0.95) 0%, rgba(16,16,18,0.98) 100%)", backdropFilter: "blur(12px)" }}
+        >
+          {/* Subtle top accent line */}
+          <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.35) 40%, rgba(6,182,212,0.25) 70%, transparent)" }} />
+
+          <div className="flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-2.5">
+
+            {/* ── LEFT: Brand + Title ── */}
+            <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+              {/* Brand mark — uses the actual GameLens icon image */}
               <button
                 onClick={handleNewGame}
-                className="inline-flex h-9 shrink-0 items-center rounded-lg bg-surface/70 px-3 text-sm font-medium text-fg/80 ring-1 ring-muted/20 hover:bg-surface hover:text-fg transition-colors whitespace-nowrap"
+                className="group flex items-center gap-2 shrink-0"
+                title="New analysis"
               >
-                <span className="sm:hidden">← New</span>
-                <span className="hidden sm:inline">← New analysis</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/gamelens-icon.png"
+                  alt="GameLens"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-xl ring-1 ring-white/10 transition-all group-hover:ring-emerald-400/40 object-cover"
+                />
+                <div className="flex flex-col leading-none">
+                  <span className="text-[11px] font-semibold tracking-widest uppercase"
+                    style={{ background: "linear-gradient(90deg, #10b981, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                  >GameLens</span>
+                  <span className="text-[10px] mt-0.5" style={{ color: "rgba(113,113,122,0.7)" }}>
+                    {phase === "review" ? "Game Review" : "Explore"}
+                  </span>
+                </div>
               </button>
-              <span className="hidden sm:inline text-muted/40">·</span>
-              <h1 className="text-lg font-semibold text-fg leading-tight">
-                {phase === "review" ? "Game Review" : "Explore"}
-              </h1>
+
+              {/* Vertical divider + Meta strip — hidden on mobile */}
+              <div className="hidden md:block h-7 w-px shrink-0 bg-white/[0.07]" />
+              <div className="hidden md:flex items-center gap-2 min-w-0 overflow-hidden">
+                {phase === "review" && headers && (headers.white || headers.black) ? (
+                  <span className="text-xs truncate max-w-[18rem] font-medium" style={{ color: "rgba(244,244,245,0.65)" }}>
+                    <span style={{ color: "rgba(244,244,245,0.9)" }}>{headers.white || "?"}</span>
+                    {headers.whiteElo ? <span style={{ color: "rgba(113,113,122,0.7)", fontSize: "10px" }}> ({headers.whiteElo})</span> : null}
+                    <span style={{ color: "rgba(113,113,122,0.5)", margin: "0 6px" }}>vs</span>
+                    <span style={{ color: "rgba(244,244,245,0.9)" }}>{headers.black || "?"}</span>
+                    {headers.blackElo ? <span style={{ color: "rgba(113,113,122,0.7)", fontSize: "10px" }}> ({headers.blackElo})</span> : null}
+                    {headers.result ? <span style={{ color: "rgba(113,113,122,0.5)", marginLeft: "6px" }}>· {headers.result}</span> : null}
+                  </span>
+                ) : null}
+                <OpeningBadge name={opening} />
+                {phase === "review" && currentPgn && analyzeDepth < 22 && (
+                  <button
+                    onClick={handleReanalyze}
+                    className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-2 text-[10px] font-semibold transition-all"
+                    style={{ color: "#67e8f9", background: "rgba(6,182,212,0.08)", boxShadow: "inset 0 0 0 1px rgba(6,182,212,0.2)" }}
+                    title={`Re-analyze at deeper depth (currently ${analyzeDepth})`}
+                  >
+                    <Gauge size={10} />
+                    Depth {analyzeDepth}
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
-              {phase === "review" && headers && (headers.white || headers.black) && (
-                <span className="text-xs text-muted truncate max-w-full sm:max-w-[30rem]">
-                  {headers.white || "?"}
-                  {headers.whiteElo ? ` (${headers.whiteElo})` : ""}
-                  {" vs "}
-                  {headers.black || "?"}
-                  {headers.blackElo ? ` (${headers.blackElo})` : ""}
-                  {headers.result ? ` · ${headers.result}` : ""}
-                </span>
-              )}
-              <OpeningBadge name={opening} />
+
+            {/* ── SPACER ── */}
+            <div className="flex-1" />
+
+            {/* ── RIGHT: Action buttons ── */}
+            <div className="flex items-center gap-1">
+
+              {/* DESKTOP ONLY: Tier 1 — Flip + PGN */}
+              <div className="hidden md:flex items-center gap-1 mr-1">
+                <button
+                  onClick={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
+                  className="shrink-0 inline-flex h-8 items-center gap-1.5 px-2.5 rounded-lg text-xs font-medium transition-all"
+                  style={{ color: "rgba(244,244,245,0.6)", background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.6)"; }}
+                  title="Flip board (F)"
+                >
+                  <ArrowLeftRight size={12} /> Flip
+                </button>
+                <button
+                  onClick={handleExportPgn}
+                  className="shrink-0 inline-flex h-8 items-center gap-1.5 px-2.5 rounded-lg text-xs font-medium transition-all"
+                  style={{ color: "rgba(244,244,245,0.6)", background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.6)"; }}
+                >
+                  {copiedPgn ? <Check size={12} style={{ color: "#34d399" }} /> : <Copy size={12} />}
+                  {copiedPgn ? "Copied" : "PGN"}
+                </button>
+              </div>
+
+              {/* DESKTOP ONLY: separator */}
+              <div className="hidden md:block h-5 w-px bg-white/[0.07] mx-0.5" />
+
+              {/* DESKTOP ONLY: Tier 2 — Primary colored actions */}
+              <div className="hidden md:flex items-center gap-1 mx-1">
+                {phase === "review" && currentPgn && (
+                  <button
+                    onClick={handleShare}
+                    className="shrink-0 inline-flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-all"
+                    style={{ color: "#a7f3d0", background: "rgba(16,185,129,0.1)", boxShadow: "inset 0 0 0 1px rgba(16,185,129,0.2)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(16,185,129,0.18)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(16,185,129,0.1)"; }}
+                    title="Copy a shareable link to this analysis"
+                  >
+                    <Share2 size={12} /> Share
+                  </button>
+                )}
+                <button
+                  onClick={() => setImportOpen(true)}
+                  className="shrink-0 inline-flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-all"
+                  style={{ color: "#bfdbfe", background: "rgba(99,102,241,0.1)", boxShadow: "inset 0 0 0 1px rgba(99,102,241,0.2)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.18)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.1)"; }}
+                  title="Import a new game without losing this one"
+                >
+                  <Upload size={12} /> Import
+                </button>
+                <button
+                  onClick={() => setMarathonOpen(true)}
+                  className="shrink-0 inline-flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-all relative"
+                  style={{ color: "#fde68a", background: "rgba(245,158,11,0.09)", boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.2)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(245,158,11,0.18)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(245,158,11,0.09)"; }}
+                  title="Puzzle marathon from your mistakes"
+                >
+                  <Target size={12} /> Puzzles
+                  {puzzleQueueStats.due > 0 && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 h-4 min-w-[16px] px-1 grid place-items-center rounded-full text-[9px] font-bold tabular-nums"
+                      style={{ background: "#06b6d4", color: "#0a0a0a", boxShadow: "0 0 0 2px #0a0a0a" }}
+                    >
+                      {puzzleQueueStats.due > 99 ? "99+" : puzzleQueueStats.due}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setInsightsOpen(true)}
+                  className="shrink-0 inline-flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-all"
+                  style={{ color: "#c4b5fd", background: "rgba(139,92,246,0.09)", boxShadow: "inset 0 0 0 1px rgba(139,92,246,0.2)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.18)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.09)"; }}
+                  title="Insights across all your analyzed games"
+                >
+                  <BarChart3 size={12} /> Insights
+                </button>
+              </div>
+
+              {/* DESKTOP ONLY: separator */}
+              <div className="hidden md:block h-5 w-px bg-white/[0.07] mx-0.5" />
+
+              {/* MOBILE: compact icon-only shortcuts — Flip + Import + Puzzles (with badge) */}
+              <div className="flex md:hidden items-center gap-0.5 mr-1">
+                <button
+                  onClick={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.55)", background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)" }}
+                  title="Flip board"
+                >
+                  <ArrowLeftRight size={15} />
+                </button>
+                <button
+                  onClick={() => setImportOpen(true)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(191,219,254,0.7)", background: "rgba(99,102,241,0.08)", boxShadow: "inset 0 0 0 1px rgba(99,102,241,0.18)" }}
+                  title="Import game"
+                >
+                  <Upload size={15} />
+                </button>
+                <button
+                  onClick={() => setMarathonOpen(true)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-all relative"
+                  style={{ color: "rgba(253,230,138,0.7)", background: "rgba(245,158,11,0.08)", boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.18)" }}
+                  title="Puzzles"
+                >
+                  <Target size={15} />
+                  {puzzleQueueStats.due > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 h-4 min-w-[14px] px-0.5 grid place-items-center rounded-full text-[8px] font-bold tabular-nums"
+                      style={{ background: "#06b6d4", color: "#0a0a0a", boxShadow: "0 0 0 1.5px #0a0a0a" }}
+                    >
+                      {puzzleQueueStats.due > 99 ? "99+" : puzzleQueueStats.due}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* ALL SIZES: Tier 3 — Utility icons */}
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.4)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  title="Gemini API key"
+                >
+                  <KeyRound size={14} />
+                </button>
+                <button
+                  onClick={() => setShortcutsOpen(true)}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.4)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  title="Keyboard shortcuts (?)"
+                >
+                  <HelpCircle size={15} />
+                </button>
+                <div
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.4)" }}
+                >
+                  <BoardSettings
+                    boardOrientation={boardOrientation}
+                    showCoordinates={showCoordinates}
+                    showAnimations={showAnimations}
+                    onOrientationChange={setBoardOrientation}
+                    onCoordinatesChange={setShowCoordinates}
+                    onAnimationsChange={setShowAnimations}
+                    onFlipBoard={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
+                    onReset={handleNewGame}
+                    boardThemes={BOARD_THEMES}
+                    currentTheme={boardTheme}
+                    onThemeChange={setBoardTheme}
+                    engineDepth={engineDepth}
+                    onDepthChange={setEngineDepth}
+                    soundEnabled={soundEnabled}
+                    onSoundChange={setSoundEnabled}
+                    showHanging={showHanging}
+                    onShowHangingChange={setShowHanging}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 xl:w-auto xl:justify-end xl:overflow-visible xl:pb-0">
-            <button
-              onClick={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-              title="Flip board (F)"
-            >
-              <ArrowLeftRight size={14} /> <span className="hidden sm:inline">Flip</span>
-            </button>
-            <button
-              onClick={handleExportPgn}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-            >
-              {copiedPgn ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-              <span className="hidden sm:inline">{copiedPgn ? "Copied" : "PGN"}</span>
-            </button>
+
+          {/* MOBILE ONLY: secondary action row — Share, PGN, Insights */}
+          <div className="md:hidden flex items-center gap-1.5 px-3 pb-2.5 overflow-x-auto">
             {phase === "review" && currentPgn && (
               <button
                 onClick={handleShare}
-                className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-                title="Copy a shareable link to this analysis"
+                className="shrink-0 inline-flex h-7 items-center gap-1.5 px-2.5 rounded-lg text-[11px] font-semibold transition-all"
+                style={{ color: "#a7f3d0", background: "rgba(16,185,129,0.1)", boxShadow: "inset 0 0 0 1px rgba(16,185,129,0.2)" }}
+                title="Share"
               >
-                <Share2 size={14} /> <span className="hidden sm:inline">Share</span>
-              </button>
-            )}
-            {phase === "review" && currentPgn && analyzeDepth < 22 && (
-              <button
-                onClick={handleReanalyze}
-                className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-                title={`Re-analyze at deeper depth (currently ${analyzeDepth})`}
-              >
-                <Gauge size={14} /> <span className="hidden sm:inline">Deeper</span>
+                <Share2 size={11} /> Share
               </button>
             )}
             <button
-              onClick={() => setImportOpen(true)}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-              title="Import a new game without losing this one"
+              onClick={handleExportPgn}
+              className="shrink-0 inline-flex h-7 items-center gap-1.5 px-2.5 rounded-lg text-[11px] font-semibold transition-all"
+              style={{ color: "rgba(244,244,245,0.65)", background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)" }}
             >
-              <Upload size={14} /> <span className="hidden sm:inline">Import</span>
-            </button>
-            <button
-              onClick={() => setMarathonOpen(true)}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all relative"
-              title="Puzzle marathon from your mistakes"
-            >
-              <Target size={14} /> <span className="hidden sm:inline">Puzzles</span>
-              {puzzleQueueStats.due > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 grid place-items-center rounded-full bg-cyan-400 text-bg text-[9px] font-semibold tabular-nums">
-                  {puzzleQueueStats.due > 99 ? "99+" : puzzleQueueStats.due}
-                </span>
-              )}
+              {copiedPgn ? <Check size={11} style={{ color: "#34d399" }} /> : <Copy size={11} />}
+              {copiedPgn ? "Copied" : "PGN"}
             </button>
             <button
               onClick={() => setInsightsOpen(true)}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-              title="Insights across all your analyzed games"
+              className="shrink-0 inline-flex h-7 items-center gap-1.5 px-2.5 rounded-lg text-[11px] font-semibold transition-all"
+              style={{ color: "#c4b5fd", background: "rgba(139,92,246,0.09)", boxShadow: "inset 0 0 0 1px rgba(139,92,246,0.2)" }}
             >
-              <BarChart3 size={14} /> <span className="hidden sm:inline">Insights</span>
+              <BarChart3 size={11} /> Insights
             </button>
-            <button
-              onClick={handleNewGame}
-              className="shrink-0 inline-flex h-9 items-center gap-1.5 px-3 bg-surface hover:bg-surface ring-1 ring-muted/20 text-fg/80 text-xs sm:text-sm rounded-lg transition-all"
-            >
-              <RotateCcw size={14} /> <span className="hidden sm:inline">New</span>
-            </button>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted hover:text-fg/90 hover:bg-surface transition-colors"
-              title="Gemini API key"
-            >
-              <KeyRound size={16} />
-            </button>
-            <button
-              onClick={() => setShortcutsOpen(true)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted hover:text-fg/90 hover:bg-surface transition-colors"
-              title="Keyboard shortcuts (?)"
-            >
-              <HelpCircle size={17} />
-            </button>
-            <BoardSettings
-              boardOrientation={boardOrientation}
-              showCoordinates={showCoordinates}
-              showAnimations={showAnimations}
-              onOrientationChange={setBoardOrientation}
-              onCoordinatesChange={setShowCoordinates}
-              onAnimationsChange={setShowAnimations}
-              onFlipBoard={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
-              onReset={handleNewGame}
-              boardThemes={BOARD_THEMES}
-              currentTheme={boardTheme}
-              onThemeChange={setBoardTheme}
-              engineDepth={engineDepth}
-              onDepthChange={setEngineDepth}
-              soundEnabled={soundEnabled}
-              onSoundChange={setSoundEnabled}
-              showHanging={showHanging}
-              onShowHangingChange={setShowHanging}
-            />
+            {phase === "review" && currentPgn && analyzeDepth < 22 && (
+              <button
+                onClick={handleReanalyze}
+                className="shrink-0 inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-semibold transition-all"
+                style={{ color: "#67e8f9", background: "rgba(6,182,212,0.08)", boxShadow: "inset 0 0 0 1px rgba(6,182,212,0.2)" }}
+                title={`Re-analyze at deeper depth (currently ${analyzeDepth})`}
+              >
+                <Gauge size={10} /> Depth {analyzeDepth}
+              </button>
+            )}
+            <OpeningBadge name={opening} />
           </div>
         </header>
 
