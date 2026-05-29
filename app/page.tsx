@@ -9,8 +9,8 @@ import {
   ArrowLeftRight,
   Gauge,
   HelpCircle,
+  KeyRound,
   Share2,
-  Settings as SettingsIcon,
   BarChart3,
   Upload,
   Target,
@@ -1031,9 +1031,9 @@ export default function Home() {
             <button
               onClick={() => setSettingsOpen(true)}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted hover:text-fg/90 hover:bg-surface transition-colors"
-              title="Settings (Gemini key, etc.)"
+              title="Gemini API key"
             >
-              <SettingsIcon size={16} />
+              <KeyRound size={16} />
             </button>
             <button
               onClick={() => setShortcutsOpen(true)}
