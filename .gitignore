@@ -51,8 +51,8 @@ next-env.d.ts
 # stray build artifacts
 /my-app/
 
-# Stockfish WASM (too large for git — download separately)
-/public/stockfish/*.wasm
+# Stockfish WASM — 108MB, copied from node_modules at build time via scripts/copy-stockfish.mjs
+/public/stockfish/
 
 # temp commit messages
 COMMIT_MSG.txt
