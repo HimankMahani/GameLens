@@ -9,11 +9,11 @@
 const KEY_STORAGE_KEY = "chess-analyzer.gemini-key";
 const MODEL_STORAGE_KEY = "chess-analyzer.gemini-model";
 const ENABLED_STORAGE_KEY = "chess-analyzer.gemini-enabled";
-const DEFAULT_MODEL = "gemini-3.5-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 
 export const GEMINI_MODELS = [
-  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash (recommended)" },
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash (recommended)" },
+  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash" },
 ] as const;
 
 export interface GeminiSettings {
@@ -224,7 +224,7 @@ export async function explainMove(
     systemPrompt: SYSTEM_PROMPT,
     temperature: 0.4,
     topP: 0.9,
-    maxOutputTokens: 320,
+    maxOutputTokens: 768,
   });
   cacheSet(key, text);
   return text;
@@ -267,6 +267,12 @@ export async function generateContent(
       maxOutputTokens: options.maxOutputTokens ?? 320,
     },
   };
+  if (model.startsWith("gemini-2.5-flash")) {
+    body.generationConfig = {
+      ...(body.generationConfig as Record<string, unknown>),
+      thinkingConfig: { thinkingBudget: 0 },
+    };
+  }
   if (options.systemPrompt) {
     body.systemInstruction = { role: "system", parts: [{ text: options.systemPrompt }] };
   }
@@ -320,6 +326,14 @@ export async function generateContent(
       "Gemini blocked the response — try a different move.",
       "blocked",
       false,
+      { details: finishReason }
+    );
+  }
+  if (finishReason === "MAX_TOKENS") {
+    throw new GeminiError(
+      "Gemini ran out of response tokens — regenerate the explanation.",
+      "unknown",
+      true,
       { details: finishReason }
     );
   }

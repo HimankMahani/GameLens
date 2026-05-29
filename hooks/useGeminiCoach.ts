@@ -25,6 +25,8 @@ interface AskOptions {
   bypassCache?: boolean;
 }
 
+const RETRY_DELAYS_MS = [700, 1400];
+
 export function useGeminiCoach() {
   const [state, setState] = useState<State>({ loading: false, text: null, error: null });
   const controllerRef = useRef<AbortController | null>(null);
@@ -53,11 +55,25 @@ export function useGeminiCoach() {
 
     setState({ loading: true, text: null, error: null });
     try {
-      const text = await explainMove(input, settings, {
-        signal: ctl.signal,
-        bypassCache: options.bypassCache,
-      });
+      let text: string | null = null;
+      let lastError: unknown;
+      for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+        try {
+          text = await explainMove(input, settings, {
+            signal: ctl.signal,
+            bypassCache: options.bypassCache || attempt > 0,
+          });
+          break;
+        } catch (e) {
+          lastError = e;
+          if (ctl.signal.aborted || !isRetryableGeminiError(e) || attempt === RETRY_DELAYS_MS.length) {
+            throw e;
+          }
+          await wait(RETRY_DELAYS_MS[attempt], ctl.signal);
+        }
+      }
       if (ctl.signal.aborted) return;
+      if (!text) throw lastError ?? new Error("Gemini returned no text.");
       setState({ loading: false, text, error: null });
     } catch (e) {
       // Drop aborted requests silently — a newer ask() (or unmount) won.
@@ -103,4 +119,24 @@ export function useGeminiCoach() {
   }, []);
 
   return { ...state, ask, regenerate, reset };
+}
+
+function isRetryableGeminiError(error: unknown): boolean {
+  if (error instanceof GeminiError) return error.retryable;
+  if (error instanceof TypeError) return true;
+  return false;
+}
+
+function wait(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(new DOMException("Aborted", "AbortError"));
+      },
+      { once: true }
+    );
+  });
 }
