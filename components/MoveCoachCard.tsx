@@ -278,7 +278,9 @@ const MoveCoachCard: FC<MoveCoachCardProps> = ({
                 </button>
               </div>
             </div>
-            <p className="text-[12px] text-fg/85 leading-relaxed whitespace-pre-wrap">{coach.text}</p>
+            <div className="text-[12px] text-fg/85 leading-relaxed whitespace-pre-wrap">
+              {renderInlineMarkdown(coach.text)}
+            </div>
           </div>
         )}
         {coach.error && (
@@ -393,3 +395,38 @@ const Controls: FC<{
 );
 
 export default MoveCoachCard;
+
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    const token = match[0];
+    const content = token.slice(2, -2);
+    if (token.startsWith("**")) {
+      nodes.push(
+        <strong key={nodes.length} className="font-semibold text-fg">
+          {content}
+        </strong>
+      );
+    } else {
+      nodes.push(
+        <code key={nodes.length} className="rounded bg-bg/60 px-1 py-0.5 font-mono text-[11px] text-violet-100">
+          {token.slice(1, -1)}
+        </code>
+      );
+    }
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+}
