@@ -76,9 +76,10 @@ export function useStockfish() {
     const worker = new Worker("/stockfish/stockfish.js");
     workerRef.current = worker;
 
+    // 60s — first load downloads ~108MB of WASM; subsequent loads hit the HTTP cache.
     const t = setTimeout(() => {
       if (!readyRef.current) setError("Engine load timed out — try a different browser or disable extensions.");
-    }, 15000);
+    }, 60000);
 
     worker.onerror = () => {
       setError("Engine failed to load");

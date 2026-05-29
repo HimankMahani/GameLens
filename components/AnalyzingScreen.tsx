@@ -52,7 +52,9 @@ const AnalyzingScreen: FC<AnalyzingScreenProps> = ({ current, total, depth, onCa
           </div>
         )}
         <p className="text-xs text-muted mt-1">
-          Depth {depth} · {current} / {total} positions
+          {total > 0
+            ? `Depth ${depth} · ${current} / ${total} positions`
+            : "Loading engine… (first load can take up to a minute)"}
         </p>
 
         <div className="mt-6 h-1.5 w-full rounded-full bg-surface overflow-hidden relative">

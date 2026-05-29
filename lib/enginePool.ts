@@ -58,9 +58,11 @@ export function createPool(size: number): EnginePool {
     readyResolvers.forEach((r) => r());
   };
 
+  // 60s — the WASM is ~108MB; first load on slow connections can take 30-50s.
+  // Subsequent loads hit the HTTP cache and finish in <1s.
   const loadTimeout = setTimeout(() => {
     rejectReady(new Error("Engine load timed out"));
-  }, 15000);
+  }, 60000);
 
   for (let i = 0; i < size; i++) {
     const worker = new Worker("/stockfish/stockfish.js");
