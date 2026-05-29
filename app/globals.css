@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+:root {
+  /* Default chess-analyzer palette (zinc + emerald). Overridden at runtime
+   * by applyTheme() when the user picks something else. */
+  --bg: #0a0a0a;
+  --sub-alt: #18181b;
+  --sub: #71717a;
+  --main: #10b981;
+  --text: #f4f4f5;
+  --error: #ef4444;
+  --error-extra: #b91c1c;
+  --board-light: #d0d0d0;
+  --board-dark: #4a4a4a;
+
+  /* Back-compat aliases. */
+  --background: var(--bg);
+  --foreground: var(--text);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-bg: var(--bg);
+  --color-surface: var(--sub-alt);
+  --color-fg: var(--text);
+  --color-muted: var(--sub);
+  --color-accent: var(--main);
+  --color-danger: var(--error);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 280ms ease, color 280ms ease;
+}
+
+/* Project-wide focus ring uses the active theme's accent color. */
+*:focus-visible {
+  outline: 2px solid var(--main);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline-offset: 1px;
+}
+
+/* ---- Light-theme color swaps ----
+ * On themes with a light background, the bright pastel accent colors
+ * (cyan-300, emerald-300, etc.) become invisible. Redefine the Tailwind v4
+ * color tokens to darker variants so utility classes like `text-emerald-300`,
+ * `bg-emerald-500/10`, `ring-emerald-500/30`, `from-emerald-400` all swap
+ * automatically. */
+[data-light-theme="true"] {
+  --color-cyan-300: #0e7490;
+  --color-cyan-400: #0891b2;
+  --color-blue-300: #1d4ed8;
+  --color-blue-400: #2563eb;
+  --color-emerald-300: #047857;
+  --color-emerald-400: #059669;
+  --color-emerald-500: #047857;
+  --color-amber-300: #b45309;
+  --color-amber-400: #c2410c;
+  --color-yellow-400: #a16207;
+  --color-yellow-500: #854d0e;
+  --color-orange-300: #c2410c;
+  --color-orange-400: #ea580c;
+  --color-orange-500: #c2410c;
+  --color-red-300: #b91c1c;
+  --color-red-400: #dc2626;
+  --color-red-500: #b91c1c;
+  --color-rose-300: #be123c;
+  --color-rose-400: #e11d48;
+  --color-rose-500: #be123c;
+}
+
+/* Dark surfaces in fixed widgets (toast, modals) on light themes:
+ * the body bg goes light so a once-dark backdrop now reads as a black hole.
+ * Soften the modal/toast scrim on light themes. */
+[data-light-theme="true"] .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+/* ---- Animations ---- */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes grow-vertical {
+  from { transform: scaleY(0); transform-origin: top; }
+  to   { transform: scaleY(1); transform-origin: top; }
+}
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, -30px) scale(1.05); }
+  66%      { transform: translate(-25px, 30px) scale(0.95); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--main) 25%, transparent), 0 0 0 0 color-mix(in srgb, var(--main) 45%, transparent); }
+  70%  { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--main) 25%, transparent), 0 0 0 12px color-mix(in srgb, var(--main) 0%, transparent); }
+  100% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--main) 25%, transparent), 0 0 0 0 color-mix(in srgb, var(--main) 0%, transparent); }
+}
+
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+@keyframes bar-stripe {
+  0%   { background-position: 0 0; }
+  100% { background-position: 32px 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* Stagger helper for lists */
+.stagger > * { opacity: 0; animation: slide-up 360ms ease-out both; }
+.stagger > *:nth-child(1)  { animation-delay:   0ms; }
+.stagger > *:nth-child(2)  { animation-delay:  35ms; }
+.stagger > *:nth-child(3)  { animation-delay:  70ms; }
+.stagger > *:nth-child(4)  { animation-delay: 105ms; }
+.stagger > *:nth-child(5)  { animation-delay: 140ms; }
+.stagger > *:nth-child(6)  { animation-delay: 175ms; }
+.stagger > *:nth-child(7)  { animation-delay: 210ms; }
+.stagger > *:nth-child(8)  { animation-delay: 245ms; }
+.stagger > *:nth-child(9)  { animation-delay: 280ms; }
+.stagger > *:nth-child(10) { animation-delay: 315ms; }
+.stagger > *:nth-child(n+11) { animation-delay: 350ms; }
+
+/* ---- Scrollbar polish ---- */
+
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(63, 63, 70, 0.6);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(82, 82, 91, 0.8); }
+
+/* Reduce-motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
