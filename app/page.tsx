@@ -154,6 +154,7 @@ export default function Home() {
   const [puzzleSession, setPuzzleSession] = useState<{ solved: number; attempted: number }>({ solved: 0, attempted: 0 });
   // Mobile-only: which column to show (lg: breakpoint always shows all 3).
   const [mobileTab, setMobileTab] = useState<"board" | "moves" | "side">("board");
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   // Promotion picker — when a pawn drag would promote and no piece was specified.
   const [pendingPromotion, setPendingPromotion] = useState<{
     from: string;
@@ -168,6 +169,14 @@ export default function Home() {
   const { loadPreferences, savePreferences } = usePreferences();
   const { loadAnnotations, saveAnnotations } = useAnnotations();
   const { loadArrowsForPly, saveArrowsForPly } = useUserArrows();
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsDesktopLayout(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     setUserArrows(loadArrowsForPly(currentGameKey, currentIndex));
@@ -926,6 +935,10 @@ export default function Home() {
     return <AnalyzingScreen current={progress.current} total={progress.total} depth={analyzeDepth} onCancel={() => setPhase("landing")} headers={headers} opening={opening} />;
   }
 
+  const showBoardColumn = isDesktopLayout || mobileTab === "board";
+  const showMovesColumn = isDesktopLayout || mobileTab === "moves";
+  const showSideColumn = isDesktopLayout || mobileTab === "side";
+
   return (
     <div
       className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 xl:px-6 animate-[fade-in_300ms_ease-out]"
@@ -1238,60 +1251,65 @@ export default function Home() {
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[auto_minmax(220px,260px)_minmax(300px,340px)] xl:grid-cols-[auto_minmax(240px,300px)_minmax(320px,360px)] 2xl:grid-cols-[auto_minmax(260px,320px)_minmax(340px,380px)] justify-center gap-4 xl:gap-5 items-start">
-          <div className={`${mobileTab === "board" ? "block" : "hidden"} lg:block justify-self-center lg:justify-self-auto`}>
-            <BoardColumn
-              fen={positions[currentIndex]?.fen || ""}
-              reviewMode={phase === "review"}
-              cp={phase === "review" ? reviewCp : liveCp}
-              mate={phase === "review" ? reviewMate : liveMate}
-              boardOrientation={boardOrientation}
-              boardTheme={boardTheme}
-              showCoordinates={showCoordinates}
-              showAnimations={showAnimations}
-              movable={phase === "explore" || phase === "review" || !!puzzle}
-              onPieceDrop={phase === "explore" || phase === "review" || puzzle ? onPieceDrop : undefined}
-              arrows={arrows}
-              lastMove={lastMove}
-              currentIndex={currentIndex}
-              totalPlies={totalPlies}
-              canGoBack={canGoBack}
-              canGoForward={canGoForward}
-              goToStart={goToStart}
-              goBack={goBack}
-              goForward={goForward}
-              goToEnd={goToEnd}
-              goToPly={goToPly}
-              cpsByPly={cpsByPly}
-              classificationsByPly={classificationsByPly}
-              gameOver={gameOverState}
-              turnOverride={engineThinking ? "Engine thinking…" : undefined}
-              clockSpent={clocks?.spent}
-              onArrowsChange={handleArrowsChange}
-              showHanging={showHanging}
-              currentSan={positions[currentIndex]?.move?.san}
-              currentClassification={
-                currentIndex > 0 ? classificationsByPly[currentIndex] : undefined
-              }
-            />
-          </div>
+          {showBoardColumn && (
+            <div className="justify-self-center lg:justify-self-auto">
+              <BoardColumn
+                fen={positions[currentIndex]?.fen || ""}
+                reviewMode={phase === "review"}
+                cp={phase === "review" ? reviewCp : liveCp}
+                mate={phase === "review" ? reviewMate : liveMate}
+                boardOrientation={boardOrientation}
+                boardTheme={boardTheme}
+                showCoordinates={showCoordinates}
+                showAnimations={showAnimations}
+                movable={phase === "explore" || phase === "review" || !!puzzle}
+                onPieceDrop={phase === "explore" || phase === "review" || puzzle ? onPieceDrop : undefined}
+                arrows={arrows}
+                lastMove={lastMove}
+                currentIndex={currentIndex}
+                totalPlies={totalPlies}
+                canGoBack={canGoBack}
+                canGoForward={canGoForward}
+                goToStart={goToStart}
+                goBack={goBack}
+                goForward={goForward}
+                goToEnd={goToEnd}
+                goToPly={goToPly}
+                cpsByPly={cpsByPly}
+                classificationsByPly={classificationsByPly}
+                gameOver={gameOverState}
+                turnOverride={engineThinking ? "Engine thinking…" : undefined}
+                clockSpent={clocks?.spent}
+                onArrowsChange={handleArrowsChange}
+                showHanging={showHanging}
+                currentSan={positions[currentIndex]?.move?.san}
+                currentClassification={
+                  currentIndex > 0 ? classificationsByPly[currentIndex] : undefined
+                }
+              />
+            </div>
+          )}
 
           {/* Center: move list */}
-          <div className={`${mobileTab === "moves" ? "block" : "hidden"} lg:block h-[64vh] min-h-[430px] lg:h-[calc(100vh-136px)] lg:min-h-[500px] lg:max-h-[680px] w-full animate-[fade-in_360ms_ease-out_80ms_both]`}>
-            <MoveList
-              moves={moveHistory}
-              currentIndex={currentIndex}
-              onMoveClick={(p) => {
-                goToPly(p);
-                if (typeof window !== "undefined" && window.innerWidth < 1024) setMobileTab("board");
-              }}
-              annotations={annotations}
-              classifications={classificationsByPly}
-              onAnnotationClick={handleAnnotationClick}
-            />
-          </div>
+          {showMovesColumn && (
+            <div className="h-[64vh] min-h-[430px] lg:h-[calc(100vh-136px)] lg:min-h-[500px] lg:max-h-[680px] w-full animate-[fade-in_360ms_ease-out_80ms_both]">
+              <MoveList
+                moves={moveHistory}
+                currentIndex={currentIndex}
+                onMoveClick={(p) => {
+                  goToPly(p);
+                  if (!isDesktopLayout) setMobileTab("board");
+                }}
+                annotations={annotations}
+                classifications={classificationsByPly}
+                onAnnotationClick={handleAnnotationClick}
+              />
+            </div>
+          )}
 
           {/* Right: review panels or engine panel */}
-          <div className={`${mobileTab === "side" ? "flex" : "hidden"} lg:flex flex-col gap-3 pb-8 animate-[slide-in-right_320ms_ease-out_both]`}>
+          {showSideColumn && (
+            <div className="flex flex-col gap-3 pb-8 animate-[slide-in-right_320ms_ease-out_both]">
             {phase === "review" ? (
               <>
                 {puzzle && analyzedMoves[puzzle.movePly - 1] ? (
@@ -1381,7 +1399,8 @@ export default function Home() {
                 />
               </>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
