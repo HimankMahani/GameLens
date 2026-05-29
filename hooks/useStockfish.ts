@@ -81,8 +81,10 @@ export function useStockfish() {
       if (!readyRef.current) setError("Engine load timed out — try a different browser or disable extensions.");
     }, 60000);
 
-    worker.onerror = () => {
-      setError("Engine failed to load");
+    worker.onerror = (e: ErrorEvent) => {
+      const detail = e.message || e.filename || "unknown";
+      console.error("Stockfish worker error:", e);
+      setError("Engine failed to load: " + detail);
       setIsReady(false);
     };
 

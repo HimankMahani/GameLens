@@ -78,8 +78,10 @@ export function createPool(size: number): EnginePool {
     };
     slots.push(slot);
 
-    worker.onerror = () => {
-      rejectReady(new Error("Engine worker failed to load"));
+    worker.onerror = (e: ErrorEvent) => {
+      const detail = e.message || e.filename || "unknown";
+      console.error("Stockfish worker error:", e);
+      rejectReady(new Error("Engine worker failed to load: " + detail));
     };
 
     worker.onmessage = (e) => {

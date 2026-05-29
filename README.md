@@ -21,7 +21,7 @@ npm run dev
 
 Open <http://localhost:3000>.
 
-**Note:** Stockfish WASM files (`public/stockfish/*.wasm`, ~108MB) are not included in the repo. Download from [official-stockfish/Stockfish](https://github.com/official-stockfish/Stockfish) or [nmrugg/stockfish.js](https://github.com/nmrugg/stockfish.js) and place in `public/stockfish/`.
+**Note:** Stockfish WASM files are copied from the npm `stockfish` package during `npm run dev` and `npm run build`. The build uses the lite single-threaded WASM (~7MB) so Vercel can upload it and browsers can load it before the engine timeout.
 
 ## Stack
 
