@@ -9,12 +9,11 @@
 const KEY_STORAGE_KEY = "chess-analyzer.gemini-key";
 const MODEL_STORAGE_KEY = "chess-analyzer.gemini-model";
 const ENABLED_STORAGE_KEY = "chess-analyzer.gemini-enabled";
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-3.5-flash";
 
 export const GEMINI_MODELS = [
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash (recommended)" },
-  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro (slower, stronger)" },
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash (recommended)" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
 ] as const;
 
 export interface GeminiSettings {
@@ -27,9 +26,10 @@ export function loadGeminiSettings(): GeminiSettings {
   if (typeof localStorage === "undefined") {
     return { key: "", model: DEFAULT_MODEL, enabled: false };
   }
+  const storedModel = localStorage.getItem(MODEL_STORAGE_KEY) ?? DEFAULT_MODEL;
   return {
     key: localStorage.getItem(KEY_STORAGE_KEY) ?? "",
-    model: localStorage.getItem(MODEL_STORAGE_KEY) ?? DEFAULT_MODEL,
+    model: normalizeGeminiModel(storedModel),
     enabled: localStorage.getItem(ENABLED_STORAGE_KEY) === "1",
   };
 }
@@ -38,8 +38,13 @@ export function saveGeminiSettings(s: GeminiSettings): void {
   if (typeof localStorage === "undefined") return;
   if (s.key) localStorage.setItem(KEY_STORAGE_KEY, s.key);
   else localStorage.removeItem(KEY_STORAGE_KEY);
-  localStorage.setItem(MODEL_STORAGE_KEY, s.model || DEFAULT_MODEL);
+  localStorage.setItem(MODEL_STORAGE_KEY, normalizeGeminiModel(s.model));
   localStorage.setItem(ENABLED_STORAGE_KEY, s.enabled ? "1" : "0");
+}
+
+function normalizeGeminiModel(model: string | null | undefined): string {
+  const candidate = model ?? DEFAULT_MODEL;
+  return GEMINI_MODELS.some((m) => m.id === candidate) ? candidate : DEFAULT_MODEL;
 }
 
 export function clearGeminiKey(): void {
@@ -320,7 +325,13 @@ export async function generateContent(
   }
   const text = parsed.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
   if (!text) {
-    throw new GeminiError("Gemini returned no text.", "unknown", false);
+    const reason = finishReason ? ` Finish reason: ${finishReason}.` : "";
+    throw new GeminiError(
+      `Gemini returned no text.${reason}`,
+      "unknown",
+      false,
+      { details: finishReason }
+    );
   }
   return text;
 }
@@ -339,9 +350,9 @@ export async function validateGeminiKey(
   const timer = setTimeout(() => ctl.abort(), 8_000);
   try {
     await generateContent(
-      "Hi",
+      "Reply with exactly one word: OK",
       { key: trimmed, model: model || DEFAULT_MODEL, enabled: true },
-      { signal: ctl.signal, maxOutputTokens: 8, temperature: 0 }
+      { signal: ctl.signal, maxOutputTokens: 32, temperature: 0 }
     );
     return { ok: true };
   } catch (e) {
