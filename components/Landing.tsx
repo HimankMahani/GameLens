@@ -174,9 +174,9 @@ const Landing: FC<LandingProps> = ({ onStart, onExplore, onOpenCached, onBulkDon
             GameLens
           </h1>
           <p className="text-sm sm:text-base text-muted mt-3 max-w-lg mx-auto leading-relaxed">
-            Paste a game, drop a PGN, or load your last 25 from chess.com or Lichess.
-            Move-by-move review, blunder puzzles built from your own mistakes — all in
-            your browser.
+            Free chess game analysis powered by Stockfish 18. Paste a PGN, drop a file,
+            or load your last 25 games from chess.com or Lichess — move-by-move accuracy,
+            blunder detection, and puzzle training, all in your browser.
           </p>
         </div>
 
@@ -300,6 +300,106 @@ const Landing: FC<LandingProps> = ({ onStart, onExplore, onOpenCached, onBulkDon
           Runs entirely in your browser. Nothing leaves your device.
         </p>
       </div>
+
+      {/* ── SEO content section ── visible to crawlers; below the fold for users */}
+      <section
+        aria-label="About GameLens"
+        className="w-full max-w-3xl mx-auto mt-20 mb-10 px-4 sm:px-6 animate-[fade-in_800ms_ease-out_400ms_both]"
+      >
+        {/* Feature grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+          {[
+            {
+              title: "Move-by-move accuracy",
+              body: "Every move gets scored against Stockfish 18's best line. See your overall accuracy percentage and a colour-coded breakdown across all moves — brilliant, great, best, excellent, good, inaccuracy, mistake, and blunder.",
+            },
+            {
+              title: "Blunder & mistake detection",
+              body: "GameLens automatically flags every blunder, mistake, and missed win in your game so you can pinpoint the moments that cost you points. Jump directly to each critical moment with one click.",
+            },
+            {
+              title: "Best-move suggestions",
+              body: "Each suboptimal move shows an engine arrow and a top-line continuation so you can understand what you should have played and why it was stronger.",
+            },
+            {
+              title: "Blunder puzzles from your games",
+              body: "Turn your own mistakes into spaced-repetition training puzzles. Every blunder or missed win becomes a puzzle you can practice until you stop making the same mistake.",
+            },
+            {
+              title: "Import from chess.com & Lichess",
+              body: "Enter your username to load your last 25 games directly from chess.com or Lichess, or paste any PGN, drop a .pgn file, or paste a Lichess game URL. Bulk import and analyze multiple games at once.",
+            },
+            {
+              title: "100% free, no account needed",
+              body: "GameLens runs entirely in your browser using WebAssembly. Your games are never uploaded to any server. There is no sign-up, no paywall, and no ads — just instant analysis.",
+            },
+          ].map(({ title, body }) => (
+            <div
+              key={title}
+              className="rounded-xl p-4 ring-1 ring-white/[0.07]"
+              style={{ background: "rgba(24,24,27,0.7)" }}
+            >
+              <h2 className="text-sm font-semibold text-fg mb-1.5">{title}</h2>
+              <p className="text-xs leading-relaxed text-muted">{body}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ */}
+        <div className="mb-10">
+          <h2 className="text-base font-semibold text-fg mb-4">
+            Frequently asked questions
+          </h2>
+          <dl className="space-y-4">
+            {[
+              {
+                q: "How do I analyze a chess game?",
+                a: "Paste your PGN into the text box and click \"Analyze game\". You can also paste a lichess.org or chess.com game URL and GameLens will fetch the PGN for you. Alternatively, drop a .pgn file directly onto the page.",
+              },
+              {
+                q: "What is PGN?",
+                a: "PGN (Portable Game Notation) is the standard text format for recording chess games. You can export a PGN from chess.com, Lichess, or any chess application. It looks like \"1. e4 e5 2. Nf3 Nc6 3. Bb5\".",
+              },
+              {
+                q: "How is accuracy calculated?",
+                a: "Each move is compared to Stockfish's best move at your chosen depth. The centipawn loss — the difference in position score — is converted to an accuracy percentage using a formula similar to chess.com and Lichess.",
+              },
+              {
+                q: "What is the difference between a blunder, mistake, and inaccuracy?",
+                a: "A blunder is a severe error that significantly worsens your position (typically losing 200+ centipawns). A mistake is a serious error (roughly 100–200 centipawns lost). An inaccuracy is a less serious slip that still noticeably weakens your position.",
+              },
+              {
+                q: "Does GameLens work on mobile?",
+                a: "Yes. GameLens is fully responsive and works on phones and tablets. The interface adapts to a tabbed layout (Board, Moves, Review) on smaller screens.",
+              },
+              {
+                q: "Is GameLens free?",
+                a: "Yes, completely free. There is no sign-up, no premium tier, and no ads. The engine runs locally in your browser so there are no server costs to pass on.",
+              },
+              {
+                q: "Which chess engine does GameLens use?",
+                a: "GameLens uses Stockfish 18, compiled to WebAssembly, running entirely in your browser. It is the same world-class engine used by Lichess and other top chess sites.",
+              },
+              {
+                q: "Can I analyze chess960 or other variants?",
+                a: "GameLens currently supports standard chess only. PGNs with Variant headers other than \"Standard\" will be rejected with an error message.",
+              },
+            ].map(({ q, a }) => (
+              <div key={q} className="border-b border-white/[0.06] pb-4">
+                <dt className="text-sm font-medium text-fg mb-1">{q}</dt>
+                <dd className="text-xs leading-relaxed text-muted">{a}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <p className="text-center text-[11px] leading-relaxed text-muted/50">
+          GameLens is a free chess game analysis tool powered by{" "}
+          <span className="text-muted/70">Stockfish 18</span>. Analyze your
+          games from chess.com, Lichess, or any PGN source — blunder detection,
+          accuracy scoring, move coach, and puzzle training, all in your browser.
+        </p>
+      </section>
     </div>
   );
 };
