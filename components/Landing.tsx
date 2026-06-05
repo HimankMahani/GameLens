@@ -299,15 +299,14 @@ const Landing: FC<LandingProps> = ({ onStart, onExplore, onOpenCached, onBulkDon
         <p className="text-center text-[10px] text-muted/70 mt-6 animate-[fade-in_700ms_ease-out_300ms_both]">
           Runs entirely in your browser. Nothing leaves your device.
         </p>
-      </div>
 
-      {/* ── SEO content section ── visible to crawlers; below the fold for users */}
-      <section
-        aria-label="About GameLens"
-        className="w-full max-w-3xl mx-auto mt-20 mb-10 px-4 sm:px-6 animate-[fade-in_800ms_ease-out_400ms_both]"
-      >
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+        {/* ── SEO content section ── visible below the main card */}
+        <section
+          aria-label="About GameLens"
+          className="w-full mt-10 mb-10 animate-[fade-in_800ms_ease-out_400ms_both]"
+        >
+        {/* Feature list */}
+        <div className="flex flex-col gap-3 mb-10">
           {[
             {
               title: "Move-by-move accuracy",
@@ -399,7 +398,8 @@ const Landing: FC<LandingProps> = ({ onStart, onExplore, onOpenCached, onBulkDon
           games from chess.com, Lichess, or any PGN source — blunder detection,
           accuracy scoring, move coach, and puzzle training, all in your browser.
         </p>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };
