@@ -1140,9 +1140,10 @@ export default function Home() {
 
               {/* ALL SIZES: Tier 3 — Utility icons */}
               <div className="flex items-center gap-0.5">
+                {/* Gemini API key — hidden on mobile (reachable via Settings modal) */}
                 <button
                   onClick={() => setSettingsOpen(true)}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  className="hidden md:grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
                   style={{ color: "rgba(244,244,245,0.4)" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -1152,21 +1153,21 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => setFeedbackOpen(true)}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
-                  style={{ color: "rgba(244,244,245,0.4)" }}
+                  className="grid h-9 w-9 md:h-8 md:w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.5)" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.5)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   title="Help & feedback"
                 >
                   <MessageCircle size={15} />
                 </button>
                 <button
                   onClick={() => setShortcutsOpen(true)}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
-                  style={{ color: "rgba(244,244,245,0.4)" }}
+                  className="grid h-9 w-9 md:h-8 md:w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.5)" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                  title="Keyboard shortcuts (?)"
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.5)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  title="Controls & shortcuts"
                 >
                   <HelpCircle size={15} />
                 </button>

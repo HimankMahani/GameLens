@@ -1,14 +1,14 @@
 "use client";
 
 import { FC } from "react";
-import { X, Keyboard } from "lucide-react";
+import { HelpCircle, Keyboard, Smartphone, X } from "lucide-react";
 
 interface ShortcutsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SHORTCUTS: { keys: string[]; label: string }[] = [
+const KEYBOARD: { keys: string[]; label: string }[] = [
   { keys: ["←", "→"], label: "Previous / next move" },
   { keys: ["Home", "End"], label: "Jump to start / end" },
   { keys: ["Space"], label: "Auto-play / pause" },
@@ -17,6 +17,16 @@ const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ["Shift", "B"], label: "Previous blunder / mistake" },
   { keys: ["?"], label: "Show this overlay" },
   { keys: ["Esc"], label: "Close modals" },
+];
+
+const TOUCH: { gesture: string; label: string }[] = [
+  { gesture: "Swipe left", label: "Next move" },
+  { gesture: "Swipe right", label: "Previous move" },
+  { gesture: "Bottom bar →", label: "Step forward / back" },
+  { gesture: "Bottom bar ▶", label: "Auto-play / pause" },
+  { gesture: "Bottom bar ⚠", label: "Jump to next mistake" },
+  { gesture: "Tap move (Moves tab)", label: "Jump to that position" },
+  { gesture: "Tap coach strip", label: "Expand move explanation" },
 ];
 
 const Kbd: FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -29,38 +39,64 @@ const ShortcutsModal: FC<ShortcutsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface ring-1 ring-muted/40 rounded-2xl shadow-2xl w-full max-w-sm p-5 animate-[slide-up_220ms_ease-out_both]">
+      <div className="relative bg-surface ring-1 ring-muted/40 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-5 animate-[slide-up_220ms_ease-out_both] max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Keyboard size={14} className="text-fg/65" />
-            <p className="text-sm font-semibold text-fg">Keyboard shortcuts</p>
+            <HelpCircle size={14} className="text-fg/65" />
+            <p className="text-sm font-semibold text-fg">Controls & shortcuts</p>
           </div>
           <button onClick={onClose} className="text-muted hover:text-fg transition-colors">
             <X size={16} />
           </button>
         </div>
 
-        <div className="space-y-1.5">
-          {SHORTCUTS.map((s, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-bg/40 transition-colors"
-            >
-              <span className="text-xs text-fg/80">{s.label}</span>
-              <span className="flex items-center gap-1 shrink-0">
-                {s.keys.map((k, j) => (
-                  <Kbd key={j}>{k}</Kbd>
-                ))}
-              </span>
-            </div>
-          ))}
+        {/* Mobile gestures */}
+        <div className="mb-4">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Smartphone size={11} className="text-muted/70" />
+            <p className="text-[10px] text-muted uppercase tracking-wider font-medium">Touch / mobile</p>
+          </div>
+          <div className="space-y-1">
+            {TOUCH.map((s) => (
+              <div
+                key={s.gesture}
+                className="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-bg/40 transition-colors"
+              >
+                <span className="text-xs text-fg/80">{s.label}</span>
+                <span className="text-[11px] font-medium text-muted/80 shrink-0 text-right">
+                  {s.gesture}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <p className="text-[10px] text-muted/70 mt-3 text-center">
-          Press <Kbd>?</Kbd> any time
-        </p>
+        <div className="h-px bg-muted/15 mb-4" />
+
+        {/* Keyboard shortcuts */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-2">
+            <Keyboard size={11} className="text-muted/70" />
+            <p className="text-[10px] text-muted uppercase tracking-wider font-medium">Keyboard</p>
+          </div>
+          <div className="space-y-1">
+            {KEYBOARD.map((s, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-bg/40 transition-colors"
+              >
+                <span className="text-xs text-fg/80">{s.label}</span>
+                <span className="flex items-center gap-1 shrink-0">
+                  {s.keys.map((k, j) => (
+                    <Kbd key={j}>{k}</Kbd>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
