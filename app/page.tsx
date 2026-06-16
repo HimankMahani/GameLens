@@ -8,8 +8,8 @@ import {
   ArrowLeftRight,
   Gauge,
   HelpCircle,
+  Keyboard,
   KeyRound,
-  MessageCircle,
   Share2,
   BarChart3,
   Upload,
@@ -1159,7 +1159,7 @@ export default function Home() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.5)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   title="Help & feedback"
                 >
-                  <MessageCircle size={15} />
+                  <HelpCircle size={15} />
                 </button>
                 <button
                   onClick={() => setShortcutsOpen(true)}
@@ -1169,7 +1169,7 @@ export default function Home() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.5)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   title="Controls & shortcuts"
                 >
-                  <HelpCircle size={15} />
+                  <Keyboard size={15} />
                 </button>
                 <div
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
