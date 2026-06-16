@@ -60,7 +60,7 @@ const PuzzlePanel: FC<PuzzlePanelProps> = ({
             played <span className="font-mono text-orange-300">{move.san}</span> here — a {move.classification}.
           </p>
           <p className="text-[10px] text-muted/70 mt-2">
-            Drag a piece on the board to attempt.
+            Tap or drag a piece on the board to attempt.
           </p>
         </>
       )}

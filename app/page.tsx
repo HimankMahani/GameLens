@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   Gauge,
   HelpCircle,
+  Info,
   Keyboard,
   KeyRound,
   Share2,
@@ -1102,16 +1103,8 @@ export default function Home() {
               {/* DESKTOP ONLY: separator */}
               <div className="hidden md:block h-5 w-px bg-white/[0.07] mx-0.5" />
 
-              {/* MOBILE: compact icon-only shortcuts — Flip + Import + Puzzles (with badge) */}
+              {/* MOBILE: compact icon-only shortcuts — Import + Puzzles (Flip is in BoardSettings) */}
               <div className="flex md:hidden items-center gap-0.5 mr-1">
-                <button
-                  onClick={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-all"
-                  style={{ color: "rgba(244,244,245,0.55)", background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.07)" }}
-                  title="Flip board"
-                >
-                  <ArrowLeftRight size={15} />
-                </button>
                 <button
                   onClick={() => setImportOpen(true)}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-all"
@@ -1169,7 +1162,9 @@ export default function Home() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.5)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   title="Controls & shortcuts"
                 >
-                  <Keyboard size={15} />
+                  {/* On mobile show Info icon (touch guide); desktop shows Keyboard icon */}
+                  <Info size={15} className="md:hidden" />
+                  <Keyboard size={15} className="hidden md:block" />
                 </button>
                 <div
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
@@ -1200,7 +1195,8 @@ export default function Home() {
           </div>
 
           {/* MOBILE ONLY: secondary action row — Share, PGN, Insights */}
-          <div className="md:hidden flex items-center gap-1.5 px-3 pb-2.5 overflow-x-auto">
+          <div className="md:hidden relative">
+          <div className="flex items-center gap-1.5 px-3 pb-2.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {phase === "review" && currentPgn && (
               <button
                 onClick={handleShare}
@@ -1238,6 +1234,10 @@ export default function Home() {
             )}
             <OpeningBadge name={opening} />
           </div>
+          {/* Fade hint — signals the strip is scrollable */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6"
+            style={{ background: "linear-gradient(to left, rgba(16,16,18,0.9), transparent)" }} />
+          </div>
         </header>
 
         {/* Mobile tab strip */}
@@ -1245,7 +1245,7 @@ export default function Home() {
           {([
             { id: "board", label: "Board" },
             { id: "moves", label: "Moves" },
-            { id: "side", label: phase === "review" ? "Review" : "Engine" },
+            { id: "side", label: phase === "review" ? "Analysis" : "Engine" },
           ] as const).map((t) => {
             const active = mobileTab === t.id;
             return (

@@ -63,7 +63,7 @@ const BoardSettings: FC<BoardSettingsProps> = ({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-72 bg-surface border border-muted/40 rounded-xl shadow-xl z-20 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-surface border border-muted/40 rounded-xl shadow-xl z-40 overflow-hidden">
             <div className="p-3 space-y-3">
               {/* Flip board */}
               <button

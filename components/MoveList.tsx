@@ -174,16 +174,16 @@ const MoveList: FC<MoveListProps> = ({
                     <span className="text-blue-400 text-[10px] leading-none">💬</span>
                   )}
 
-                  {/* Annotation button (hover) */}
-                  {onAnnotationClick && isHovered && (
+                  {/* Annotation button — always visible on touch, hover-only on desktop */}
+                  {onAnnotationClick && (isHovered || hasAnnotation) && (
                     <button
                       onClick={e => {
                         e.stopPropagation();
                         onAnnotationClick(moveNum, annotations[moveNum] || "");
                       }}
-                      className={`ml-auto p-0.5 rounded transition-colors ${
+                      className={`ml-auto p-0.5 rounded transition-colors md:opacity-0 md:group-hover:opacity-100 ${
                         hasAnnotation
-                          ? "text-blue-400 hover:text-blue-300"
+                          ? "text-blue-400 hover:text-blue-300 md:opacity-100"
                           : "text-muted/70 hover:text-fg/65"
                       }`}
                       title={hasAnnotation ? "Edit note" : "Add note"}

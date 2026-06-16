@@ -1,7 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import { HelpCircle, Keyboard, Smartphone, X } from "lucide-react";
+import { Smartphone, X } from "lucide-react";
 
 interface ShortcutsModalProps {
   isOpen: boolean;
@@ -43,10 +43,7 @@ const ShortcutsModal: FC<ShortcutsModalProps> = ({ isOpen, onClose }) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface ring-1 ring-muted/40 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-5 animate-[slide-up_220ms_ease-out_both] max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <HelpCircle size={14} className="text-fg/65" />
-            <p className="text-sm font-semibold text-fg">Controls & shortcuts</p>
-          </div>
+          <p className="text-sm font-semibold text-fg">Controls & shortcuts</p>
           <button onClick={onClose} className="text-muted hover:text-fg transition-colors">
             <X size={16} />
           </button>
@@ -73,14 +70,10 @@ const ShortcutsModal: FC<ShortcutsModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="h-px bg-muted/15 mb-4" />
-
-        {/* Keyboard shortcuts */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <Keyboard size={11} className="text-muted/70" />
-            <p className="text-[10px] text-muted uppercase tracking-wider font-medium">Keyboard</p>
-          </div>
+        {/* Keyboard shortcuts — hidden on mobile, no physical keyboard */}
+        <div className="hidden md:block">
+          <div className="h-px bg-muted/15 mb-4" />
+          <p className="text-[10px] text-muted uppercase tracking-wider font-medium mb-2">Keyboard</p>
           <div className="space-y-1">
             {KEYBOARD.map((s, i) => (
               <div
