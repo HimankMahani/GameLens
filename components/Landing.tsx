@@ -398,6 +398,26 @@ const Landing: FC<LandingProps> = ({ onStart, onExplore, onOpenCached, onBulkDon
           games from chess.com, Lichess, or any PGN source — blunder detection,
           accuracy scoring, move coach, and puzzle training, all in your browser.
         </p>
+        <p className="text-center text-[11px] text-muted/60 mt-3">
+          Found a bug or have an idea?{" "}
+          <a
+            href="https://tally.so/r/q4N8G7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-400/80 hover:text-emerald-300 underline underline-offset-2"
+          >
+            Send feedback
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://github.com/HimankMahani/GameLens/issues/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-fg/65 hover:text-fg/90 underline underline-offset-2"
+          >
+            GitHub issues
+          </a>
+        </p>
         </section>
       </div>
     </div>

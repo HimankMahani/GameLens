@@ -9,6 +9,7 @@ import {
   Gauge,
   HelpCircle,
   KeyRound,
+  MessageCircle,
   Share2,
   BarChart3,
   Upload,
@@ -48,6 +49,7 @@ import { parseClocks, type ClockData } from "@/lib/pgnClock";
 import GameChooser from "@/components/GameChooser";
 import ShortcutsModal from "@/components/ShortcutsModal";
 import SettingsModal from "@/components/SettingsModal";
+import FeedbackModal from "@/components/FeedbackModal";
 import ImportModal from "@/components/ImportModal";
 import MarathonModal from "@/components/MarathonModal";
 import InsightsModal from "@/components/InsightsModal";
@@ -124,6 +126,7 @@ export default function Home() {
   const [pendingGames, setPendingGames] = useState<{ games: string[]; depth: number } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [settingsRev, setSettingsRev] = useState(0);
   const [importOpen, setImportOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
@@ -1148,6 +1151,16 @@ export default function Home() {
                   <KeyRound size={14} />
                 </button>
                 <button
+                  onClick={() => setFeedbackOpen(true)}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
+                  style={{ color: "rgba(244,244,245,0.4)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.9)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(244,244,245,0.4)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  title="Help & feedback"
+                >
+                  <MessageCircle size={15} />
+                </button>
+                <button
                   onClick={() => setShortcutsOpen(true)}
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-all"
                   style={{ color: "rgba(244,244,245,0.4)" }}
@@ -1430,6 +1443,7 @@ export default function Home() {
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />
       <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <SettingsModal
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
