@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, FC, useEffect, useMemo, useState } from "react";
+import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Board, { BoardArrow } from "./Board";
@@ -9,7 +9,8 @@ import EvalGraph from "./EvalGraph";
 import ClockGraph from "./ClockGraph";
 import TurnIndicator from "./TurnIndicator";
 import MaterialBalance from "./MaterialBalance";
-import type { MoveClassification } from "@/lib/analysis";
+import MobileCoachStrip from "./MobileCoachStrip";
+import type { AnalyzedMove, MoveClassification } from "@/lib/analysis";
 import { findHangingSquares } from "@/lib/hangingPieces";
 
 const CLASSIFICATION_HEX: Record<MoveClassification, string> = {
@@ -60,6 +61,15 @@ interface BoardColumnProps {
   /** SAN of the move just played (for the corner badge). */
   currentSan?: string;
   currentClassification?: MoveClassification;
+  /** Analyzed move object to drive the mobile coach strip (review mode only). */
+  currentAnalyzed?: AnalyzedMove | null;
+  opening?: string;
+  geminiSettingsRev?: number;
+  onOpenSettings?: () => void;
+  onStartPuzzle?: () => void;
+  /** Swipe handlers (mobile). */
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
 const NavButton: FC<{ onClick: () => void; disabled?: boolean; children: React.ReactNode }> = ({
@@ -106,6 +116,14 @@ const BoardColumn: FC<BoardColumnProps> = ({
   showHanging,
   currentSan,
   currentClassification,
+  currentAnalyzed,
+  opening,
+  geminiSettingsRev,
+  onOpenSettings,
+  onStartPuzzle,
+  onSwipeLeft,
+  onSwipeRight,
+  reviewMode,
 }) => {
   // Click-to-select-piece OR hover-to-preview: highlights legal destinations.
   const [selected, setSelected] = useState<string | null>(null);
@@ -178,12 +196,44 @@ const BoardColumn: FC<BoardColumnProps> = ({
   // Clear selection on board position change.
   useEffect(() => { setSelected(null); setHovered(null); }, [fen]);
 
+  // Horizontal swipe → prev/next move (mobile). Tracks the initial touch and
+  // only fires if the motion is clearly horizontal (not a vertical scroll) and
+  // crosses a minimum threshold. Skipped when the user is dragging a piece.
+  const touchRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) {
+      touchRef.current = null;
+      return;
+    }
+    const t = e.touches[0];
+    touchRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchRef.current;
+    touchRef.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const elapsed = Date.now() - start.t;
+    if (elapsed > 500) return;
+    if (Math.abs(dx) < 60) return;
+    if (Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    if (dx < 0) onSwipeLeft?.();
+    else onSwipeRight?.();
+  };
+
   return (
     <div className="flex gap-2 sm:gap-3 items-start animate-[slide-up_320ms_ease-out_both] w-full lg:w-auto [--board-size:min(calc(100vw-5.5rem),520px)] lg:[--board-size:clamp(360px,calc(100vh-280px),400px)] xl:[--board-size:clamp(420px,calc(100vh-260px),480px)] 2xl:[--board-size:clamp(460px,calc(100vh-250px),520px)]">
       <EvalBar cp={cp} mate={mate} flipped={boardOrientation === "black"} height="var(--board-size)" />
       <div className="flex flex-col gap-2.5 sm:gap-3 min-w-0 w-[var(--board-size)] max-w-full shrink-0">
         <TurnIndicator fen={fen} gameOver={gameOver} override={turnOverride} />
-        <div className="relative">
+        <div
+          className="relative"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <Board
             fen={fen}
             onPieceDrop={onPieceDrop}
@@ -215,11 +265,23 @@ const BoardColumn: FC<BoardColumnProps> = ({
         </div>
         <MaterialBalance fen={fen} />
 
-        <p className="text-[11px] text-muted/75 text-center -mt-0.5">
+        {/* Mobile-only inline coach (review mode) — saves a tab switch on every move. */}
+        {reviewMode && (
+          <MobileCoachStrip
+            move={currentAnalyzed ?? null}
+            opening={opening}
+            geminiSettingsRev={geminiSettingsRev}
+            onOpenSettings={onOpenSettings}
+            onStartPuzzle={onStartPuzzle}
+          />
+        )}
+
+        <p className="hidden md:block text-[11px] text-muted/75 text-center -mt-0.5">
           Right-click + drag to draw arrows
         </p>
 
-        <div className="flex items-center justify-center gap-1.5 bg-surface/60 ring-1 ring-muted/20 rounded-xl px-2 py-2">
+        {/* Desktop ply nav — on mobile, the sticky bottom bar handles this. */}
+        <div className="hidden lg:flex items-center justify-center gap-1.5 bg-surface/60 ring-1 ring-muted/20 rounded-xl px-2 py-2">
           <NavButton onClick={goToStart} disabled={!canGoBack}><ChevronsLeft size={16} /></NavButton>
           <NavButton onClick={goBack} disabled={!canGoBack}><ChevronLeft size={16} /></NavButton>
           <span className="text-xs text-muted tabular-nums px-2 min-w-[4rem] text-center">

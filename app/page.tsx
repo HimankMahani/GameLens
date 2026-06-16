@@ -15,6 +15,7 @@ import {
   Target,
 } from "lucide-react";
 import BoardColumn from "@/components/BoardColumn";
+import MobileNavBar from "@/components/MobileNavBar";
 import MoveList from "@/components/MoveList";
 import EnginePanel from "@/components/EnginePanel";
 import PlayVsEnginePanel from "@/components/PlayVsEnginePanel";
@@ -941,7 +942,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 xl:px-6 animate-[fade-in_300ms_ease-out]"
+      className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 xl:px-6 animate-[fade-in_300ms_ease-out] pb-24 lg:pb-3"
       style={{ background: "var(--bg)" }}
     >
       <div className="max-w-[1440px] mx-auto">
@@ -1286,6 +1287,20 @@ export default function Home() {
                 currentClassification={
                   currentIndex > 0 ? classificationsByPly[currentIndex] : undefined
                 }
+                currentAnalyzed={currentAnalyzed}
+                opening={opening ?? undefined}
+                geminiSettingsRev={settingsRev}
+                onOpenSettings={() => setSettingsOpen(true)}
+                onStartPuzzle={
+                  currentAnalyzed &&
+                  (currentAnalyzed.classification === "blunder" ||
+                    currentAnalyzed.classification === "mistake" ||
+                    currentAnalyzed.classification === "miss")
+                    ? () => handleStartPuzzle(currentAnalyzed.index)
+                    : undefined
+                }
+                onSwipeLeft={goForward}
+                onSwipeRight={goBack}
               />
             </div>
           )}
@@ -1472,6 +1487,25 @@ export default function Home() {
           setMarathonOpen(true);
         }}
       />
+      <MobileNavBar
+        currentIndex={currentIndex}
+        totalPlies={totalPlies}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
+        isPlaying={isPlaying}
+        onTogglePlay={() => setIsPlaying((p) => !p)}
+        goToStart={goToStart}
+        goBack={goBack}
+        goForward={goForward}
+        goToEnd={goToEnd}
+        onNextBlunder={
+          phase === "review" && nextBlunder !== null
+            ? () => goToPly(nextBlunder)
+            : undefined
+        }
+        hasNextBlunder={phase === "review" && nextBlunder !== null}
+      />
+
       {pendingPromotion && (
         <PromotionPicker
           isOpen

@@ -101,18 +101,21 @@ const MoveCoachCard: FC<MoveCoachCardProps> = ({
         <p className="text-xs text-muted uppercase tracking-wider mb-2">Game Review</p>
         <p className="text-base text-fg/85">Starting position</p>
         <p className="text-sm text-muted/75 mt-1">Press play or → to begin</p>
-        <Controls
-          isPlaying={isPlaying}
-          onTogglePlay={onTogglePlay}
-          onPrev={onPrev}
-          onNext={onNext}
-          currentPly={currentPly}
-          totalPlies={totalPlies}
-          onPrevBlunder={onPrevBlunder}
-          onNextBlunder={onNextBlunder}
-          hasPrevBlunder={hasPrevBlunder}
-          hasNextBlunder={hasNextBlunder}
-        />
+        {/* Mobile uses the sticky bottom nav for prev/play/next. */}
+        <div className="hidden lg:block w-full">
+          <Controls
+            isPlaying={isPlaying}
+            onTogglePlay={onTogglePlay}
+            onPrev={onPrev}
+            onNext={onNext}
+            currentPly={currentPly}
+            totalPlies={totalPlies}
+            onPrevBlunder={onPrevBlunder}
+            onNextBlunder={onNextBlunder}
+            hasPrevBlunder={hasPrevBlunder}
+            hasNextBlunder={hasNextBlunder}
+          />
+        </div>
       </div>
     );
   }
@@ -316,18 +319,21 @@ const MoveCoachCard: FC<MoveCoachCardProps> = ({
         )}
       </div>
 
-      <Controls
-        isPlaying={isPlaying}
-        onTogglePlay={onTogglePlay}
-        onPrev={onPrev}
-        onNext={onNext}
-        currentPly={currentPly}
-        totalPlies={totalPlies}
-        onPrevBlunder={onPrevBlunder}
-        onNextBlunder={onNextBlunder}
-        hasPrevBlunder={hasPrevBlunder}
-        hasNextBlunder={hasNextBlunder}
-      />
+      {/* Mobile uses the sticky bottom nav for prev/play/next. */}
+      <div className="hidden lg:block">
+        <Controls
+          isPlaying={isPlaying}
+          onTogglePlay={onTogglePlay}
+          onPrev={onPrev}
+          onNext={onNext}
+          currentPly={currentPly}
+          totalPlies={totalPlies}
+          onPrevBlunder={onPrevBlunder}
+          onNextBlunder={onNextBlunder}
+          hasPrevBlunder={hasPrevBlunder}
+          hasNextBlunder={hasNextBlunder}
+        />
+      </div>
     </div>
   );
 };
